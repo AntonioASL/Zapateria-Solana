@@ -1,34 +1,78 @@
-// No imports needed: web3, anchor, pg and more are globally available
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { Zapateria } from "../target/types/zapateria";
+import { assert } from "chai";
 
-describe("Test", () => {
-  it("initialize", async () => {
-    // Generate keypair for the new account
-    const newAccountKp = new web3.Keypair();
+describe("zapateria", () => {
 
-    // Send transaction
-    const data = new BN(42);
-    const txHash = await pg.program.methods
-      .initialize(data)
-      .accounts({
-        newAccount: newAccountKp.publicKey,
-        signer: pg.wallet.publicKey,
-        systemProgram: web3.SystemProgram.programId,
-      })
-      .signers([newAccountKp])
-      .rpc();
-    console.log(`Use 'solana confirm -v ${txHash}' to see the logs`);
+  const provider = anchor.AnchorProvider.env();
+  anchor.setProvider(provider);
 
-    // Confirm transaction
-    await pg.connection.confirmTransaction(txHash);
+  const program = anchor.workspace.Zapateria as Program<Zapateria>;
 
-    // Fetch the created account
-    const newAccount = await pg.program.account.newAccount.fetch(
-      newAccountKp.publicKey
+  const owner = provider.wallet;
+
+  let zapateriaPDA: anchor.web3.PublicKey;
+
+  before(async () => {
+
+    [zapateriaPDA] = anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("zapateria"),
+        owner.publicKey.toBuffer()
+      ],
+      program.programId
     );
 
-    console.log("On-chain data is:", newAccount.data.toString());
-
-    // Check whether the data on-chain is equal to local 'data'
-    assert(data.eq(newAccount.data));
   });
+
+  it("Crea una zapateria", async () => {
+
+    await program.methods
+      .crearZapateria("Zapateria Test")
+      .accounts({
+        owner: owner.publicKey,
+        zapateria: zapateriaPDA,
+        systemProgram: anchor.web3.SystemProgram.programId
+      })
+      .rpc();
+
+    const cuenta = await program.account.zapateria.fetch(zapateriaPDA);
+
+    assert.equal(cuenta.nombre, "Zapateria Test");
+
+  });
+
+  it("Agrega un zapato", async () => {
+
+    await program.methods
+      .agregarZapato("Adidas", 26, 1200)
+      .accounts({
+        owner: owner.publicKey,
+        zapateria: zapateriaPDA
+      })
+      .rpc();
+
+    const cuenta = await program.account.zapateria.fetch(zapateriaPDA);
+
+    assert.equal(cuenta.zapatos.length, 1);
+
+  });
+
+  it("Cambia disponibilidad", async () => {
+
+    await program.methods
+      .alternarEstado("Adidas")
+      .accounts({
+        owner: owner.publicKey,
+        zapateria: zapateriaPDA
+      })
+      .rpc();
+
+    const cuenta = await program.account.zapateria.fetch(zapateriaPDA);
+
+    assert.equal(cuenta.zapatos[0].disponible, false);
+
+  });
+
 });
