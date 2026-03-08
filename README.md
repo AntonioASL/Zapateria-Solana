@@ -1,60 +1,130 @@
-# Biblioteca en Solana
+ShoeLedger — Inventario de Zapatos en Solana
 
-![banner](./images/banner-biblioteca.jpg)
+ShoeLedger es un programa on-chain construido en Rust utilizando el framework Anchor Framework sobre la blockchain de Solana.
 
-CRUD básico de un Solana Program desarrollado con Rust y Anchor desde el Solana Playground. 
+Su objetivo es permitir que una zapatería o negocio de calzado registre y administre su inventario de zapatos de forma descentralizada, segura y permanente en la blockchain.
 
-Puedes comenzar dándole Fork a este repositorio (abajo te explicamos como 👇), **hemos preparado un entorno de codespaces listo para que no tengas que instalar nada**, solo déjate llevar por la fluidez de los ejercicios y temas desarrollados especialmente para ti. 
+Este sistema guarda la información directamente en cuentas del programa dentro de la red de Solana, lo que significa que los datos no dependen de un servidor tradicional ni de una base de datos centralizada.
 
-Asegúrate de clonar este repositorio a tu cuenta usando el botón **`Fork`**.
+Objetivo del proyecto
 
-![fork](./images/fork.png)
+ShoeLedger funciona como un sistema de gestión de inventario de zapatos en blockchain, que permite realizar operaciones básicas sobre los productos registrados en la zapatería.
 
-## Importando el proyecto 
+Las principales funciones del sistema son:
 
-Ya con el repositorio en tu cuenta lo siguiente que debes hacer copiar el `enlace de tu repositorio`, lo que se puede hacer directamente desdel navegador:
+• Crear el perfil de una zapatería asociado a una wallet
+• Registrar nuevos zapatos con su información
+• Consultar los zapatos registrados en el inventario
+• Activar o desactivar la disponibilidad de un zapato
+• Eliminar zapatos del sistema
 
-![repo](./images/repo.png)
-Posteriormente, lo uniremos con el siguiente enlace en nuestro navegador de preferencia:
+Toda la información queda registrada de manera transparente, segura e inmutable dentro de la red de Solana.
 
-```url
-https://beta.solpg.io/
-```
+Estructura del programa
 
-Lo que nos dará algo parecido a:
+El programa organiza los datos dentro de la blockchain en una estructura jerárquica simple.
 
-![url](./images/url.png)
+Wallet (Owner)
+│
+└── Cuenta de Zapatería
+     │
+     ├── Zapato 1
+     ├── Zapato 2
+     └── Zapato 3
 
-Al pulsar enter seremos enviados al `Solana Playground` con nuestro proyecto abierto:
+Cada zapatería tiene su propio inventario de zapatos vinculado a la wallet del propietario.
 
-![pg](./images/pg.png)
+Esto permite que cada usuario controle su propia tienda dentro de la blockchain.
 
-Para guardarlo solo damos clic en el boton `import` y asignamos un nombre:
+Estructuras de datos principales
+Zapatería
+Campo	Tipo	Descripción
+owner	Pubkey	Dirección de la wallet propietaria
+nombre	String	Nombre de la zapatería
+zapatos	Vec	Lista de zapatos almacenados
+Zapato
+Campo	Tipo	Descripción
+nombre	String	Nombre o modelo del zapato
+talla	u8	Talla del zapato
+precio	u16	Precio del zapato
+disponible	bool	Indica si el zapato está disponible en el inventario
+Funciones del programa
 
-![import](./images/import.png)
+El contrato inteligente incluye varias instrucciones para interactuar con los datos almacenados.
 
-## Preparacion del entorno
+crear_zapateria(nombre)
 
-Primero conectaremos el entorno con la devnet, lo que tambien procederá a la creación de una wallet. Para eso daremos clic en donde dice **Not Conected**:
+Crea una nueva cuenta de zapatería vinculada a la wallet del propietario.
 
-![playground1](./images/playground1.png)
+agregar_zapato(nombre, talla, precio)
 
-Saldrá la siguiente ventana donde daremos en el botón **Continue**:
+Agrega un nuevo zapato al inventario de la zapatería.
 
-![wallet](./images/wallet.png)
+ver_zapatos()
 
-Como resultado se mostrará la siguiente información:
+Muestra la lista completa de zapatos registrados en la zapatería.
 
-![status](./images/status.png)
+alternar_estado(nombre)
 
-* En verde: el estado de la conexión y el entorno al que se encuentra conectado
+Cambia el estado de disponibilidad de un zapato, permitiendo marcarlo como disponible o no disponible.
 
-* En amarillo: la la dirección de la wallet conectada
+eliminar_zapato(nombre)
 
-* En azul: la cantidad de tokens en la wallet
+Elimina un zapato específico del inventario de la zapatería.
 
-> ℹ️ ¿Quieres ver el ejemplo de un "Hola Mundo" en Solana?. Da clic aquí: 👉 [Ver Ejemplo](https://github.com/WayLearnLatam/Solana-starter-kit/tree/1fc6349ba63375a3fe223d8d56911bc64765459b/build-deploy)
+Direcciones derivadas (PDA)
 
-> ℹ️ ¿Cuentas con una Wallet de [Phantom](https://phantom.com/) que deseas importar?, Da clic aquí para ver como hacerlo: 
+El programa utiliza Program Derived Addresses (PDA) para generar cuentas únicas dentro de la red de Solana.
 
-👉 [Como Importar una Wallet](https://github.com/WayLearnLatam/Solana-starter-kit/tree/1fc6349ba63375a3fe223d8d56911bc64765459b/import-key-a-playground)
+Cuenta	Seeds utilizadas
+Zapatería	["zapateria", owner_pubkey]
+
+Esto asegura que:
+
+• Cada wallet puede tener solo una zapatería registrada
+• Los datos almacenados no pueden ser modificados por terceros
+• Solo el propietario de la cuenta puede actualizar su inventario
+
+Cómo ejecutar el proyecto
+
+Para probar el programa puedes utilizar Solana Playground.
+
+Pasos básicos:
+
+Abrir Solana Playground
+
+Crear o pegar el código dentro del archivo src/lib.rs
+
+Conectar tu wallet en la red Devnet
+
+Presionar Build para compilar el programa
+
+Presionar Deploy para publicarlo
+
+Ejecutar las funciones desde el panel de pruebas
+
+Ejemplo de uso
+
+Flujo típico de interacción con el programa:
+
+crear_zapateria("Zapatería Central")
+
+agregar_zapato("Nike Air Max", 27, 1500)
+
+agregar_zapato("Adidas Run Falcon", 26, 1200)
+
+alternar_estado("Nike Air Max")
+
+eliminar_zapato("Adidas Run Falcon")
+
+Esto permite gestionar el inventario de la zapatería directamente en la blockchain.
+
+Tecnologías utilizadas
+Tecnología	Uso dentro del proyecto
+Solana	Blockchain donde se ejecuta el programa
+Anchor	Framework para desarrollar smart contracts
+Rust	Lenguaje principal del programa
+TypeScript	Cliente para interactuar con el programa
+Autor
+
+Proyecto desarrollado como parte del aprendizaje y práctica de desarrollo de smart contracts en Solana, implementando un sistema descentralizado para la gestión de inventario de una zapatería utilizando tecnología blockchain.
